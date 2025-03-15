@@ -2,19 +2,32 @@ const video = document.getElementById("camera");
 const canvas = document.getElementById("canvas");
 const overlay = document.getElementById("overlay");
 const ctx = canvas.getContext("2d");
+const toggleButton = document.getElementById("toggleCamera");
 
-async function setupCamera() {
+let currentStream;
+let currentFacingMode = "environment"; // Inicia com a câmera traseira
+
+// Função para configurar a câmera
+async function setupCamera(facingMode) {
+    if (currentStream) {
+        const tracks = currentStream.getTracks();
+        tracks.forEach(track => track.stop()); // Parar a câmera anterior
+    }
+
     const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { exact: "environment" } } // Câmera traseira
+        video: { facingMode: { exact: facingMode } }
     });
     video.srcObject = stream;
+    currentStream = stream;
 }
 
+// Função para carregar o modelo cocoSsd
 async function loadModel() {
     overlay.innerText = "Carregando IA...";
     return await cocoSsd.load();
 }
 
+// Função para detectar objetos
 async function detectObjects(model) {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
@@ -43,8 +56,18 @@ async function detectObjects(model) {
     requestAnimationFrame(() => detectObjects(model));
 }
 
+// Função para alternar entre a câmera frontal e traseira
+function toggleCamera() {
+    currentFacingMode = currentFacingMode === "environment" ? "user" : "environment"; // Alterna a câmera
+    setupCamera(currentFacingMode); // Configura a nova câmera
+}
+
+// Adiciona o evento de clique para o botão
+toggleButton.addEventListener("click", toggleCamera);
+
+// Função principal
 async function main() {
-    await setupCamera();
+    await setupCamera(currentFacingMode);
     const model = await loadModel();
     detectObjects(model);
 }
