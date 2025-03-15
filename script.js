@@ -4,7 +4,9 @@ const overlay = document.getElementById("overlay");
 const ctx = canvas.getContext("2d");
 
 async function setupCamera() {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { exact: "environment" } } // Câmera traseira
+    });
     video.srcObject = stream;
 }
 
