@@ -10,9 +10,16 @@
     <script defer src="script.js"></script>
 </head>
 <body>
+    <div id="menu">
+        <h1>Selecione a Câmera</h1>
+        <select id="cameraSelect">
+            <option value="front">Frontal</option>
+            <option value="back">Traseira</option>
+        </select>
+        <button id="startButton">Iniciar</button>
+    </div>
     <video id="camera" autoplay playsinline></video>
     <canvas id="canvas"></canvas>
     <div id="overlay">Carregando modelo...</div>
-    <button id="toggleCamera">Trocar Câmera</button>
 </body>
 </html>
