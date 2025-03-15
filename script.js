@@ -2,32 +2,31 @@ const video = document.getElementById("camera");
 const canvas = document.getElementById("canvas");
 const overlay = document.getElementById("overlay");
 const ctx = canvas.getContext("2d");
-const toggleButton = document.getElementById("toggleCamera");
+const menu = document.getElementById("menu");
+const startButton = document.getElementById("startButton");
+const cameraSelect = document.getElementById("cameraSelect");
 
 let currentStream;
-let currentFacingMode = "environment"; // Inicia com a câmera traseira
 
-// Função para configurar a câmera
-async function setupCamera(facingMode) {
-    if (currentStream) {
-        const tracks = currentStream.getTracks();
-        tracks.forEach(track => track.stop()); // Parar a câmera anterior
+async function setupCamera(cameraType) {
+    let constraints;
+    
+    if (cameraType === 'front') {
+        constraints = { video: { facingMode: 'user' } }; // Câmera frontal
+    } else {
+        constraints = { video: { facingMode: { exact: 'environment' } } }; // Câmera traseira
     }
 
-    const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { exact: facingMode } }
-    });
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
     video.srcObject = stream;
     currentStream = stream;
 }
 
-// Função para carregar o modelo cocoSsd
 async function loadModel() {
     overlay.innerText = "Carregando IA...";
     return await cocoSsd.load();
 }
 
-// Função para detectar objetos
 async function detectObjects(model) {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
@@ -56,20 +55,15 @@ async function detectObjects(model) {
     requestAnimationFrame(() => detectObjects(model));
 }
 
-// Função para alternar entre a câmera frontal e traseira
-function toggleCamera() {
-    currentFacingMode = currentFacingMode === "environment" ? "user" : "environment"; // Alterna a câmera
-    setupCamera(currentFacingMode); // Configura a nova câmera
+async function startAR() {
+    const cameraType = cameraSelect.value; // Captura o tipo de câmera selecionado
+    menu.style.display = 'none'; // Esconde o menu
+
+    await setupCamera(cameraType); // Configura a câmera escolhida
+    const model = await loadModel(); // Carrega o modelo
+    detectObjects(model); // Inicia a detecção de objetos
+    video.style.display = 'block'; // Exibe o vídeo
+    canvas.style.display = 'block'; // Exibe o canvas
 }
 
-// Adiciona o evento de clique para o botão
-toggleButton.addEventListener("click", toggleCamera);
-
-// Função principal
-async function main() {
-    await setupCamera(currentFacingMode);
-    const model = await loadModel();
-    detectObjects(model);
-}
-
-main();
+startButton.addEventListener("click", startAR);
